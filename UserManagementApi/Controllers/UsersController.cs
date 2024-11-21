@@ -18,10 +18,18 @@ namespace UserManagementApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetUsers()
+        public async Task<IActionResult> GetUsers([FromQuery]int page = 1, [FromQuery]int pageSize = 10)
         {
-            var users = await _context.Users.ToListAsync();
-            return Ok(users);
+            var totalUsers = await _context.Users.CountAsync();
+            var users = await _context.Users.Skip((page-1) * pageSize).Take(pageSize).ToListAsync();
+
+            return Ok(new
+            {
+                TotalUsers = totalUsers,
+                CurrentPage = page,
+                pageSize = pageSize,
+                Users = users
+            });
         }
 
         [HttpGet("{id}")]
