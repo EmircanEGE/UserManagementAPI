@@ -18,10 +18,17 @@ namespace UserManagementApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetUsers([FromQuery]int page = 1, [FromQuery]int pageSize = 10)
+        public async Task<IActionResult> GetUsers([FromQuery] string? search, [FromQuery]int page = 1, [FromQuery]int pageSize = 10)
         {
-            var totalUsers = await _context.Users.CountAsync();
-            var users = await _context.Users.Skip((page-1) * pageSize).Take(pageSize).ToListAsync();
+            var query = _context.Users.AsQueryable();
+
+            if(!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(x => x.FirstName.Contains(search) || x.LastName.Contains(search) || x.Email.Contains(search));
+            }
+
+            var totalUsers = await query.CountAsync();
+            var users = await query.Skip((page-1) * pageSize).Take(pageSize).ToListAsync();
 
             return Ok(new
             {
